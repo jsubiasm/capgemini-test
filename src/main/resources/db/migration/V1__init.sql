@@ -20,5 +20,5 @@ CREATE TABLE users (
 INSERT INTO rooms (name) VALUES ('Sala 1'), ('Sala 2');
 
 INSERT INTO users (name, email, dni, phone, role, room_id) VALUES
-('Juan Pérez', 'juan@example.com', '111', '111', 'superadmin', 1),
-('María López', 'maria@example.com', '222', '222', 'admin', 2);
+('Juan Pérez', 'juan@example.com', '111', '111', 'SUPERADMIN', 1),
+('María López', 'maria@example.com', '222', '222', 'ADMIN', 2);

@@ -90,7 +90,7 @@ public class UserServiceImpl implements UserService
 			throw new ValidationException("error validation rol");
 		}
 
-		if (!"admin".equalsIgnoreCase(request.getRol()) && !"superadmin".equalsIgnoreCase(request.getRol()))
+		if (!"ADMIN".equalsIgnoreCase(request.getRol()) && !"SUPERADMIN".equalsIgnoreCase(request.getRol()))
 		{
 			throw new ValidationException("error validation rol");
 		}

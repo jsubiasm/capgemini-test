@@ -43,7 +43,7 @@ class UserServiceImplTest
 		CreateUserRequest r = new CreateUserRequest();
 		r.setName("1234567");
 		r.setEmail("a@a.com");
-		r.setRol("admin");
+		r.setRol("ADMIN");
 		r.setDni("123");
 		r.setPhone("666");
 		assertThrows(ValidationException.class, () -> service.create(r));
@@ -55,7 +55,7 @@ class UserServiceImplTest
 		CreateUserRequest r = new CreateUserRequest();
 		r.setName("pablo");
 		r.setEmail("a@a.com");
-		r.setRol("admin");
+		r.setRol("ADMIN");
 		r.setDni("123");
 		r.setPhone("666");
 		when(userRepository.findByEmail("a@a.com")).thenReturn(Optional.of(mock(com.capgemini.test.code.domain.User.class)));
