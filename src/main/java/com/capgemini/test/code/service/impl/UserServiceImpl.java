@@ -1,12 +1,9 @@
 package com.capgemini.test.code.service.impl;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.capgemini.test.code.clients.CheckDniRequest;
-import com.capgemini.test.code.clients.CheckDniResponse;
 import com.capgemini.test.code.clients.DniClient;
 import com.capgemini.test.code.clients.EmailClient;
 import com.capgemini.test.code.clients.SmsClient;
@@ -26,6 +23,7 @@ import com.capgemini.test.code.repository.RoomRepository;
 import com.capgemini.test.code.repository.UserRepository;
 import com.capgemini.test.code.service.UserService;
 
+import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -33,21 +31,15 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService
 {
-
 	private final UserRepository userRepository;
-
 	private final RoomRepository roomRepository;
-
 	private final DniClient dniClient;
-
 	private final EmailClient emailClient;
-
 	private final SmsClient smsClient;
 
 	@Override
 	public CreateUserResponse create(CreateUserRequest request)
 	{
-
 		validateRequest(request);
 
 		if (userRepository.findByEmail(request.getEmail()).isPresent())
@@ -71,7 +63,6 @@ public class UserServiceImpl implements UserService
 	@Override
 	public UserResponse get(Long id)
 	{
-
 		User user = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException("User not found"));
 
 		return new UserResponse(user.getId(), user.getName(), user.getEmail(), user.getPhone(), user.getDni(), user.getRole().name());
@@ -79,56 +70,68 @@ public class UserServiceImpl implements UserService
 
 	private void validateRequest(CreateUserRequest request)
 	{
-
-		if (request.getName() == null || request.getName().length() > 6)
+		if (request == null)
 		{
+			throw new ValidationException("invalid request");
+		}
 
+		if (request.getName() == null || request.getName().isBlank() || request.getName().length() > 6)
+		{
 			throw new ValidationException("error validation userName");
 		}
 
 		if (request.getEmail() == null || !request.getEmail().contains("@") || !request.getEmail().contains("."))
 		{
-
 			throw new ValidationException("error validation email");
 		}
 
-		if (request.getRol() == null)
+		if (request.getRol() == null || request.getRol().isBlank())
 		{
-
 			throw new ValidationException("error validation rol");
 		}
 
 		if (!"admin".equalsIgnoreCase(request.getRol()) && !"superadmin".equalsIgnoreCase(request.getRol()))
 		{
-
 			throw new ValidationException("error validation rol");
+		}
+
+		if (request.getDni() == null || request.getDni().isBlank())
+		{
+			throw new ValidationException("error validation dni");
+		}
+
+		if (request.getPhone() == null || request.getPhone().isBlank())
+		{
+			throw new ValidationException("error validation phone");
 		}
 	}
 
 	private void validateDni(String dni)
 	{
-
-		ResponseEntity<CheckDniResponse> response = dniClient.check(new CheckDniRequest(dni));
-
-		if (response.getStatusCode() != HttpStatus.OK)
+		try
 		{
+			dniClient.check(new CheckDniRequest(dni));
+		}
+		catch (FeignException ex)
+		{
+			if (ex.status() == 409)
+			{
+				throw new InvalidDniException("error validation dni");
+			}
 
-			throw new InvalidDniException("error validation dni");
+			throw new ValidationException("External DNI service error");
 		}
 	}
 
 	private User mapToUser(CreateUserRequest request, Room room)
 	{
-
 		User user = new User();
 
 		user.setName(request.getName());
 		user.setEmail(request.getEmail());
 		user.setPhone(request.getPhone());
 		user.setDni(request.getDni());
-
 		user.setRole(Role.valueOf(request.getRol().toUpperCase()));
-
 		user.setRoom(room);
 
 		return user;
@@ -136,18 +139,14 @@ public class UserServiceImpl implements UserService
 
 	private void notifyUser(User user)
 	{
-
 		NotificationRequest notification = new NotificationRequest("usuario guardado", user.getEmail(), user.getPhone());
 
 		if (Role.ADMIN.equals(user.getRole()))
 		{
-
 			emailClient.send(notification);
-
 		}
 		else
 		{
-
 			smsClient.send(notification);
 		}
 	}

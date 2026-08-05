@@ -1,5 +1,6 @@
 package com.capgemini.test.code.domain;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -18,17 +19,19 @@ import lombok.Setter;
 @Setter
 public class User
 {
-
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
 	private String name;
 
+	@Column(unique = true)
 	private String email;
 
+	@Column(unique = true)
 	private String dni;
 
+	@Column(unique = true)
 	private String phone;
 
 	@Enumerated(EnumType.STRING)
