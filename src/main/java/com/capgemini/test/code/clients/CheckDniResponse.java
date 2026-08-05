@@ -9,6 +9,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class CheckDniResponse {
-  private String message;
+public class CheckDniResponse
+{
+	private String message;
 }
